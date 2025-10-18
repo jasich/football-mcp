@@ -57,7 +57,7 @@ class McpController < ApplicationController
       version: "1.0.0",
       instructions: "A Rails-based MCP server for American football data",
       tools: [GetLiveScoresTool],
-      resources: [LiveScoresBoardResource.to_resource]
+      resources: [LiveScoresBoardResource.to_resource, LiveScoresWidgetResource.to_resource]
     )
 
     # Handle resources/read requests
@@ -70,6 +70,13 @@ class McpController < ApplicationController
           uri: uri,
           mimeType: "text/plain",
           text: LiveScoresBoardResource.read
+        }]
+      when LiveScoresWidgetResource::URI
+        [{
+          uri: uri,
+          mimeType: "text/html+skybridge",
+          text: LiveScoresWidgetResource.read,
+          _meta: LiveScoresWidgetResource.meta
         }]
       else
         raise MCP::Server::RequestHandlerError.new(

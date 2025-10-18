@@ -14,13 +14,30 @@ class GetLiveScoresTool < MCP::Tool
     }
   )
 
+  meta(
+    "openai/outputTemplate" => LiveScoresWidgetResource::URI,
+    "openai/toolInvocation/invoking" => "Loading live scores",
+    "openai/toolInvocation/invoked" => "Live scores displayed"
+  )
+
   def self.call(league: nil, server_context: nil)
     scores = generate_mock_scores(league)
 
-    MCP::Tool::Response.new([{
-      "type" => "text",
-      "text" => format_scores(scores)
-    }])
+    # ChatGPT injects structuredContent as window.openai.toolOutput
+    # So put the full widget data here (including possession indicators)
+    response = MCP::Tool::Response.new(
+      [{
+        "type" => "text",
+        "text" => "Here are the live football scores. The widget below updates in real-time."
+      }],
+      structured_content: {
+        # Full data for the widget including possession indicators
+        matches: scores,
+        lastUpdated: Time.now.iso8601
+      }
+    )
+
+    response
   end
 
   private

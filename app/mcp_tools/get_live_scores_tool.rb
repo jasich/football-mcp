@@ -2,7 +2,7 @@
 
 class GetLiveScoresTool < MCP::Tool
   title "Get Live Scores"
-  description "Returns current live football scores"
+  description "Returns current live football scores. For a full scoreboard view, see the live-scores://board resource."
 
   input_schema(
     type: "object",

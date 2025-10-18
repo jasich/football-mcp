@@ -56,8 +56,29 @@ class McpController < ApplicationController
       name: "football-mcp-server",
       version: "1.0.0",
       instructions: "A Rails-based MCP server for American football data",
-      tools: [GetLiveScoresTool]
+      tools: [GetLiveScoresTool],
+      resources: [LiveScoresBoardResource.to_resource]
     )
+
+    # Handle resources/read requests
+    server.resources_read_handler do |params|
+      uri = params[:uri]
+
+      case uri
+      when LiveScoresBoardResource::URI
+        [{
+          uri: uri,
+          mimeType: "text/plain",
+          text: LiveScoresBoardResource.read
+        }]
+      else
+        raise MCP::Server::RequestHandlerError.new(
+          "Resource not found: #{uri}",
+          params,
+          error_type: :resource_not_found
+        )
+      end
+    end
 
     transport = MCP::Server::Transports::StreamableHTTPTransport.new(server)
     server.transport = transport

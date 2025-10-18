@@ -2,6 +2,8 @@
 
 A Rails app that implements a [Model Context Protocol](https://modelcontextprotocol.io/) server for American football data using the [official Ruby SDK](https://github.com/modelcontextprotocol/ruby-sdk).
 
+**✨ OpenAI Apps SDK Compatible** - This server uses Streamable HTTP transport with full support for Server-Sent Events (SSE), making it ready for ChatGPT integration.
+
 ## Setup
 
 ```bash
@@ -11,7 +13,9 @@ rails server
 
 ## Usage
 
-The MCP server is available at `POST /mcp`.
+### Basic Usage (Non-Streaming)
+
+The MCP server supports standard JSON-RPC requests:
 
 **List tools:**
 ```bash
@@ -34,6 +38,57 @@ curl -X POST http://localhost:3000/mcp \
   -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"get_live_scores_tool","arguments":{"league":"Pro League"}}}'
 ```
 
+### Streaming with Server-Sent Events (SSE)
+
+For real-time updates and ChatGPT integration:
+
+**1. Initialize a session:**
+```bash
+curl -i http://localhost:3000/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"initialize","id":1,"params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
+```
+
+Note the `Mcp-Session-Id` header in the response.
+
+**2. Connect to SSE stream (in one terminal):**
+```bash
+curl -N -H "Mcp-Session-Id: YOUR_SESSION_ID" http://localhost:3000/mcp
+```
+
+**3. Call tools (in another terminal):**
+```bash
+curl -i http://localhost:3000/mcp \
+  -H "Mcp-Session-Id: YOUR_SESSION_ID" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"tools/call","id":2,"params":{"name":"get_live_scores_tool","arguments":{}}}'
+```
+
+When an SSE stream is active, this returns `{"accepted":true}` and the response streams to the first terminal.
+
+**4. Clean up session:**
+```bash
+curl -X DELETE http://localhost:3000/mcp \
+  -H "Mcp-Session-Id: YOUR_SESSION_ID"
+```
+
+### ChatGPT / OpenAI Apps SDK Integration
+
+For development with ChatGPT:
+
+```bash
+# Install ngrok for HTTPS tunneling
+ngrok http 3000
+
+# Use the HTTPS URL in your OpenAI App configuration
+```
+
+The server supports all features required by the OpenAI Apps SDK:
+- ✅ Streamable HTTP transport
+- ✅ Server-Sent Events (SSE)
+- ✅ Session management
+- ✅ Real-time tool responses
+
 ## Adding Tools
 
 Create a file in `app/mcp_tools/`:
@@ -55,7 +110,19 @@ class MyTool < MCP::Tool
 end
 ```
 
-Register it in `app/controllers/mcp_controller.rb`:
+Register it in `app/controllers/mcp_controller.rb` in the `create_transport` method:
 ```ruby
 tools: [GetLiveScoresTool, MyTool]
 ```
+
+## Architecture
+
+This server uses the **Streamable HTTP transport** from the Ruby MCP SDK, which provides:
+
+- **Multiple HTTP methods**: POST (JSON-RPC), GET (SSE streams), DELETE (session cleanup)
+- **Session management**: UUID-based sessions with `Mcp-Session-Id` header
+- **Dual-mode responses**: Standard JSON or SSE streaming based on active connections
+- **Thread-safe**: Singleton transport instance with mutex-protected session storage
+- **Keepalive**: Automatic ping messages every 30 seconds to maintain SSE connections
+
+See [CLAUDE.md](CLAUDE.md) for detailed architecture documentation.

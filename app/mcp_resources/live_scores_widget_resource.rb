@@ -6,7 +6,8 @@ class LiveScoresWidgetResource
   # v6: Replaced polling with proper OpenAI Apps SDK event listeners
   # v7: Inline JavaScript bundle to fix iframe loading
   # v8: Fix ERB escaping for inlined JS
-  VERSION = "v8"
+  # v9: Use full URL with BASE_URL env var (matching OpenAI examples)
+  VERSION = "v9"
   URI = "ui://widget/live-scores.html?#{VERSION}"
 
   class << self

@@ -16,10 +16,37 @@ This server is **fully compatible with the OpenAI Apps SDK** (announced at DevDa
 
 ## Development Commands
 
-**Start the server:**
+**Setup:**
 ```bash
 bundle install
+npm install
+cp .env.example .env
+# Edit .env and set BASE_URL to your ngrok URL for ChatGPT testing
+```
+
+**Start the server:**
+```bash
+# For local testing only
 rails server
+
+# For ChatGPT integration with React widgets
+# 1. Start ngrok to expose your server
+ngrok http 3000
+
+# 2. Update .env with your ngrok URL
+# BASE_URL=https://your-url.ngrok-free.app
+
+# 3. Start Rails server
+rails server
+```
+
+**Build React widgets:**
+```bash
+# One-time build
+npm run build
+
+# Watch mode (rebuilds on changes)
+npm run watch
 ```
 
 **Run tests:**
@@ -193,10 +220,37 @@ end
 
 ### Technology Stack
 
-- Rails 8.0.2+ (API-only mode)
+- Rails 8.0.2+ (was API-only, now full Rails for widget support)
 - Ruby MCP SDK gem with StreamableHTTPTransport
 - SQLite 3 with Solid adapters (solid_cache, solid_queue, solid_cable)
 - Puma web server
+- React 19 for interactive widgets
+- ESBuild for JavaScript bundling (via jsbundling-rails)
+- Propshaft for asset serving
+- dotenv-rails for environment configuration
+
+### React Widget Architecture
+
+The application uses React for building interactive UI widgets that render inside ChatGPT's iframe:
+
+**Structure:**
+- `app/javascript/components/` - React components
+- `app/javascript/application.js` - Entry point that mounts React
+- `app/views/mcp_widgets/` - ERB templates that reference the bundled JS
+- `public/assets/` - Built JavaScript bundles
+- `.env` - BASE_URL configuration for widget script loading
+
+**Key Patterns:**
+- Uses `useOpenAiGlobal()` hook with `useSyncExternalStore` to reactively subscribe to `window.openai` changes
+- Listens for `openai:set_globals` events instead of polling
+- Reads tool output from `window.openai.toolOutput`
+- Widget HTML references JavaScript bundle via full URL: `<script src="{BASE_URL}/assets/application.js">`
+
+**Development Workflow:**
+1. Edit React components in `app/javascript/components/`
+2. Run `npm run watch` to rebuild on changes
+3. Increment resource `VERSION` constant to bust ChatGPT's cache
+4. Test in ChatGPT (resource URI includes version, e.g., `ui://widget/live-scores.html?v9`)
 
 ## Production Deployment
 

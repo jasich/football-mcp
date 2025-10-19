@@ -4,9 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Live Football Scores</title>
-  <script type="module">
-<%= File.read(Rails.root.join('public/assets/application.js')).html_safe %>
-  </script>
+  <script type="module" src="<%= ENV.fetch('BASE_URL', 'http://localhost:3000') %>/assets/application.js"></script>
 </head>
 <body>
   <div id="react-root"></div>

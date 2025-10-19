@@ -3,9 +3,8 @@
 # Ignore bundler config.
 /.bundle
 
-# Ignore all environment files.
-/.env
-/.env.*
+# Ignore local environment overrides (keep .env and .env.example committed)
+/.env*.local
 
 # Ignore all logfiles and tempfiles.
 /log/*

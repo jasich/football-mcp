@@ -2,7 +2,8 @@
 
 class LiveScoresWidgetResource
   # Add version for cache busting during development
-  VERSION = "v4"
+  # Incremented to v5 for React integration
+  VERSION = "v5"
   URI = "ui://widget/live-scores.html?#{VERSION}"
 
   class << self

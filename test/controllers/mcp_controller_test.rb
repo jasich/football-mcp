@@ -51,7 +51,8 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     content = contents[0]
     assert_equal LiveScoresWidgetResource::URI, content["uri"]
     assert_equal "text/html+skybridge", content["mimeType"]
-    assert_includes content["text"], "<div id=\"live-scores-root\">", "Should contain HTML widget"
+    assert_includes content["text"], "<div id=\"react-root\">", "Should contain React mount point"
+    assert_includes content["text"], "application", "Should include application.js script"
   end
 
   test "should return error for removed board resource" do

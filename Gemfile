@@ -38,6 +38,12 @@ gem "thruster", require: false
 # Model Context Protocol SDK
 gem "mcp"
 
+# JavaScript bundling for React integration
+gem "jsbundling-rails"
+
+# Asset pipeline for serving JavaScript bundles
+gem "propshaft"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

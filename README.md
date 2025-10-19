@@ -115,6 +115,40 @@ Register it in `app/controllers/mcp_controller.rb` in the `create_transport` met
 tools: [GetLiveScoresTool, MyTool]
 ```
 
+## Adding Resources
+
+Resources provide data that can be accessed by clients. Create a file in `app/mcp_resources/`:
+
+```ruby
+class MyResource
+  VERSION = "v1"  # Increment when content changes
+  URI = "my-resource://data?#{VERSION}"
+
+  class << self
+    def to_resource
+      MCP::Resource.new(
+        uri: URI,
+        name: "My Resource",
+        description: "What this resource provides",
+        mime_type: "text/plain"
+      )
+    end
+
+    def read
+      "Resource content here"
+    end
+  end
+end
+```
+
+**Important: Resource Versioning**
+
+ChatGPT and other MCP clients cache resources aggressively. Always include a version parameter in your resource URI (e.g., `?v1`, `?v2`) and increment it whenever you change the resource content. Without versioning, clients may continue using stale cached versions indefinitely.
+
+Register it in `app/controllers/mcp_controller.rb`:
+1. Add to the `resources:` array in `create_transport`
+2. Add a case handler in `resources_read_handler` to return the content
+
 ## Architecture
 
 This server uses the **Streamable HTTP transport** from the Ruby MCP SDK, which provides:

@@ -138,6 +138,59 @@ end
 
 - **GetLiveScoresTool** (`app/mcp_tools/get_live_scores_tool.rb`): Returns mock live football scores with optional league filtering. Demonstrates response formatting and data filtering patterns.
 
+### Adding New Resources
+
+1. Create a new resource class in `app/mcp_resources/`:
+   - Define a `VERSION` constant and include it in the URI (e.g., `?v1`, `?v2`)
+   - Define a `URI` constant with the version parameter
+   - Implement `to_resource` class method that returns `MCP::Resource.new`
+   - Implement `read` class method that returns the resource content
+   - For HTML widgets, implement `meta` class method for OpenAI Apps SDK metadata
+
+2. Register the resource in `app/controllers/mcp_controller.rb`:
+   - Add `MyResource.to_resource` to the `resources:` array in `create_transport` method
+   - Add a `when MyResource::URI` case in the `resources_read_handler` block
+
+**IMPORTANT: Resource Versioning**
+
+ChatGPT and other MCP clients cache resources aggressively. Always include a version parameter in your resource URI and increment it whenever you modify the resource content:
+
+```ruby
+class MyResource
+  VERSION = "v1"  # Increment to v2, v3, etc. when content changes
+  URI = "my-resource://data?#{VERSION}"
+end
+```
+
+Without versioning, clients will continue using stale cached versions indefinitely, even after server restarts.
+
+**Example resource structure:**
+```ruby
+class MyResource
+  VERSION = "v1"
+  URI = "my-resource://data?#{VERSION}"
+
+  class << self
+    def to_resource
+      MCP::Resource.new(
+        uri: URI,
+        name: "My Resource",
+        description: "What this resource provides",
+        mime_type: "text/plain"
+      )
+    end
+
+    def read
+      "Resource content here"
+    end
+  end
+end
+```
+
+### Current Resources
+
+- **LiveScoresWidgetResource** (`app/mcp_resources/live_scores_widget_resource.rb`): HTML widget for displaying live football scores in ChatGPT. Demonstrates OpenAI Apps SDK widget integration with `text/html+skybridge` mime type.
+
 ### Technology Stack
 
 - Rails 8.0.2+ (API-only mode)

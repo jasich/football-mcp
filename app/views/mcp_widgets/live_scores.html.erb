@@ -4,7 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Live Football Scores</title>
-  <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
+  <script type="module">
+<%= File.read(Rails.root.join('public/assets/application.js')).html_safe %>
+  </script>
 </head>
 <body>
   <div id="react-root"></div>

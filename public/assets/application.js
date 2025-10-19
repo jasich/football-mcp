@@ -21454,42 +21454,35 @@ var import_client = __toESM(require_client());
 
 // app/javascript/components/LiveScoresWidget.jsx
 var import_react = __toESM(require_react());
-var LiveScoresWidget = () => {
-  const [toolOutput, setToolOutput] = (0, import_react.useState)(null);
-  const [attempts, setAttempts] = (0, import_react.useState)(0);
-  const [error, setError] = (0, import_react.useState)(null);
-  (0, import_react.useEffect)(() => {
-    const maxAttempts = 100;
-    const checkForData = () => {
-      console.log(`Attempt ${attempts + 1}: Checking for data...`, window.openai?.toolOutput);
-      if (window.openai?.toolOutput) {
-        console.log("Data found! Rendering...");
-        setToolOutput(window.openai.toolOutput);
-        return true;
-      }
-      if (attempts >= maxAttempts) {
-        console.log("Max attempts reached, giving up");
-        setError("Failed to load data after 10 seconds. Please refresh.");
-        return true;
-      }
-      return false;
-    };
-    if (!checkForData()) {
-      const checkInterval = setInterval(() => {
-        setAttempts((prev) => prev + 1);
-        if (checkForData()) {
-          clearInterval(checkInterval);
+var SET_GLOBALS_EVENT_TYPE = "openai:set_globals";
+function useOpenAiGlobal(key) {
+  return (0, import_react.useSyncExternalStore)(
+    (onChange) => {
+      const handleSetGlobal = (event) => {
+        const value = event.detail?.globals?.[key];
+        if (value === void 0) {
+          return;
         }
-      }, 100);
-      return () => clearInterval(checkInterval);
-    }
-  }, [attempts]);
+        onChange();
+      };
+      window.addEventListener(SET_GLOBALS_EVENT_TYPE, handleSetGlobal, {
+        passive: true
+      });
+      return () => {
+        window.removeEventListener(SET_GLOBALS_EVENT_TYPE, handleSetGlobal);
+      };
+    },
+    () => window.openai?.[key]
+  );
+}
+function useToolOutput() {
+  return useOpenAiGlobal("toolOutput");
+}
+var LiveScoresWidget = () => {
+  const toolOutput = useToolOutput();
   const renderScores = () => {
-    if (error) {
-      return /* @__PURE__ */ import_react.default.createElement("p", null, error);
-    }
     if (!toolOutput) {
-      return /* @__PURE__ */ import_react.default.createElement("p", null, "Waiting for data... (checking window.openai.toolOutput)");
+      return /* @__PURE__ */ import_react.default.createElement("p", null, "Waiting for data...");
     }
     const matches = toolOutput.matches || [];
     const lastUpdated = toolOutput.lastUpdated;

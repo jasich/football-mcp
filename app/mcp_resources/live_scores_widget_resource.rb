@@ -2,8 +2,11 @@
 
 class LiveScoresWidgetResource
   # Add version for cache busting during development
-  # Incremented to v5 for React integration
-  VERSION = "v5"
+  # v5: React integration
+  # v6: Replaced polling with proper OpenAI Apps SDK event listeners
+  # v7: Inline JavaScript bundle to fix iframe loading
+  # v8: Fix ERB escaping for inlined JS
+  VERSION = "v8"
   URI = "ui://widget/live-scores.html?#{VERSION}"
 
   class << self

@@ -1,52 +1,44 @@
-import React, { useState, useEffect } from 'react';
+import React, { useSyncExternalStore } from 'react';
+
+// Custom hook to subscribe to window.openai global changes
+// Based on OpenAI Apps SDK documentation pattern
+const SET_GLOBALS_EVENT_TYPE = 'openai:set_globals';
+
+function useOpenAiGlobal(key) {
+  return useSyncExternalStore(
+    (onChange) => {
+      const handleSetGlobal = (event) => {
+        const value = event.detail?.globals?.[key];
+        if (value === undefined) {
+          return;
+        }
+        onChange();
+      };
+
+      window.addEventListener(SET_GLOBALS_EVENT_TYPE, handleSetGlobal, {
+        passive: true,
+      });
+
+      return () => {
+        window.removeEventListener(SET_GLOBALS_EVENT_TYPE, handleSetGlobal);
+      };
+    },
+    () => window.openai?.[key]
+  );
+}
+
+// Convenience hooks for common tool data
+function useToolOutput() {
+  return useOpenAiGlobal('toolOutput');
+}
 
 const LiveScoresWidget = () => {
-  const [toolOutput, setToolOutput] = useState(null);
-  const [attempts, setAttempts] = useState(0);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const maxAttempts = 100; // 10 seconds total
-
-    const checkForData = () => {
-      console.log(`Attempt ${attempts + 1}: Checking for data...`, window.openai?.toolOutput);
-
-      if (window.openai?.toolOutput) {
-        console.log('Data found! Rendering...');
-        setToolOutput(window.openai.toolOutput);
-        return true;
-      }
-
-      if (attempts >= maxAttempts) {
-        console.log('Max attempts reached, giving up');
-        setError('Failed to load data after 10 seconds. Please refresh.');
-        return true;
-      }
-
-      return false;
-    };
-
-    // Try immediately
-    if (!checkForData()) {
-      // If not ready, poll every 100ms
-      const checkInterval = setInterval(() => {
-        setAttempts(prev => prev + 1);
-        if (checkForData()) {
-          clearInterval(checkInterval);
-        }
-      }, 100);
-
-      return () => clearInterval(checkInterval);
-    }
-  }, [attempts]);
+  // Use the reactive hook instead of polling
+  const toolOutput = useToolOutput();
 
   const renderScores = () => {
-    if (error) {
-      return <p>{error}</p>;
-    }
-
     if (!toolOutput) {
-      return <p>Waiting for data... (checking window.openai.toolOutput)</p>;
+      return <p>Waiting for data...</p>;
     }
 
     const matches = toolOutput.matches || [];

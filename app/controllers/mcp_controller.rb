@@ -57,7 +57,7 @@ class McpController < ApplicationController
       version: "1.0.0",
       instructions: "A Rails-based MCP server for American football data",
       tools: [GetLiveScoresTool],
-      resources: [LiveScoresBoardResource.to_resource, LiveScoresWidgetResource.to_resource]
+      resources: [LiveScoresWidgetResource.to_resource]
     )
 
     # Handle resources/read requests
@@ -65,12 +65,6 @@ class McpController < ApplicationController
       uri = params[:uri]
 
       case uri
-      when LiveScoresBoardResource::URI
-        [{
-          uri: uri,
-          mimeType: "text/plain",
-          text: LiveScoresBoardResource.read
-        }]
       when LiveScoresWidgetResource::URI
         [{
           uri: uri,

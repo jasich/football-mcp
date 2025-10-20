@@ -2,12 +2,14 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import LiveScoresWidget from './components/LiveScoresWidget';
+import TeamInfoWidget from './components/TeamInfoWidget';
 // Import other widgets here as you create them
 // import TeamStatsWidget from './components/TeamStatsWidget';
 
 // Component registry - add new widgets here
 const COMPONENT_REGISTRY = {
   'LiveScoresWidget': LiveScoresWidget,
+  'TeamInfoWidget': TeamInfoWidget,
   // 'TeamStatsWidget': TeamStatsWidget,
 };
 

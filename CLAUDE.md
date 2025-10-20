@@ -59,52 +59,6 @@ rails test
 rubocop
 ```
 
-**Test MCP endpoint (non-streaming):**
-```bash
-# List available tools
-curl -X POST http://localhost:3000/mcp \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
-
-# Call a tool
-curl -X POST http://localhost:3000/mcp \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get_live_scores_tool","arguments":{}}}'
-```
-
-**Test with SSE streaming:**
-```bash
-# 1. Initialize a session
-curl -i http://localhost:3000/mcp \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"initialize","id":1,"params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
-
-# Note the Mcp-Session-Id header in the response
-
-# 2. Connect to SSE stream (in one terminal)
-curl -N -H "Mcp-Session-Id: YOUR_SESSION_ID" http://localhost:3000/mcp
-
-# 3. Call tools (responses will stream to terminal #2)
-curl -i http://localhost:3000/mcp \
-  -H "Mcp-Session-Id: YOUR_SESSION_ID" \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"tools/call","id":2,"params":{"name":"get_live_scores_tool","arguments":{}}}'
-
-# Returns {"accepted":true} and response goes to SSE stream
-
-# 4. Clean up session
-curl -X DELETE http://localhost:3000/mcp \
-  -H "Mcp-Session-Id: YOUR_SESSION_ID"
-```
-
-**For ChatGPT/OpenAI Apps SDK:**
-```bash
-# Use ngrok for HTTPS during development
-ngrok http 3000
-
-# Then configure your OpenAI App to use the ngrok URL
-```
-
 ## Architecture
 
 ### MCP Server Pattern
@@ -258,6 +212,204 @@ The application uses React for building interactive UI widgets that render insid
 2. Run `npm run watch` to rebuild on changes (outputs to `app/assets/builds/`)
 3. Increment resource `VERSION` constant to bust ChatGPT's cache
 4. Test in ChatGPT (resource URI includes version, e.g., `ui://widget/live-scores.html?v18`)
+
+### Adding New React Components
+
+**1. Create a new React component in `app/javascript/components/`:**
+
+```jsx
+// app/javascript/components/ScoreCard.jsx
+import React from 'react';
+
+const ScoreCard = ({ match }) => {
+  return (
+    <div className="match">
+      <div className="team-row">
+        <span className="team-name">
+          {match.possession === 'home' && <span className="possession">🏈</span>}
+          {match.home_team}
+        </span>
+        <span className="team-score">{match.home_score}</span>
+      </div>
+      <div className="team-row">
+        <span className="team-name">
+          {match.possession === 'away' && <span className="possession">🏈</span>}
+          {match.away_team}
+        </span>
+        <span className="team-score">{match.away_score}</span>
+      </div>
+      <div className="match-status">
+        {match.quarter} - {match.time_remaining}
+      </div>
+    </div>
+  );
+};
+
+export default ScoreCard;
+```
+
+**2. Use the OpenAI Apps SDK hooks to read tool data:**
+
+```jsx
+// app/javascript/components/MyWidget.jsx
+import React, { useSyncExternalStore } from 'react';
+
+// Custom hook to subscribe to window.openai global changes
+const SET_GLOBALS_EVENT_TYPE = 'openai:set_globals';
+
+function useOpenAiGlobal(key) {
+  return useSyncExternalStore(
+    (onChange) => {
+      const handleSetGlobal = (event) => {
+        const value = event.detail?.globals?.[key];
+        if (value === undefined) return;
+        onChange();
+      };
+
+      window.addEventListener(SET_GLOBALS_EVENT_TYPE, handleSetGlobal, {
+        passive: true,
+      });
+
+      return () => {
+        window.removeEventListener(SET_GLOBALS_EVENT_TYPE, handleSetGlobal);
+      };
+    },
+    () => window.openai?.[key]
+  );
+}
+
+// Convenience hook for tool output
+function useToolOutput() {
+  return useOpenAiGlobal('toolOutput');
+}
+
+const MyWidget = () => {
+  const toolOutput = useToolOutput();
+
+  if (!toolOutput) {
+    return <p>Waiting for data...</p>;
+  }
+
+  return (
+    <div>
+      <h2>My Widget</h2>
+      <pre>{JSON.stringify(toolOutput, null, 2)}</pre>
+    </div>
+  );
+};
+
+export default MyWidget;
+```
+
+**3. Register the component in `app/javascript/application.js`:**
+
+```javascript
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import MyWidget from './components/MyWidget';
+
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('react-root');
+  if (container) {
+    const root = createRoot(container);
+    root.render(<MyWidget />);
+  }
+});
+```
+
+**4. Create an ERB view template in `app/views/mcp_widgets/`:**
+
+```erb
+<!-- app/views/mcp_widgets/my_widget.html.erb -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Widget</title>
+  <%= javascript_include_tag "application", type: "module" %>
+</head>
+<body>
+  <div id="react-root"></div>
+</body>
+</html>
+```
+
+**5. Create a resource class in `app/mcp_resources/`:**
+
+```ruby
+# app/mcp_resources/my_widget_resource.rb
+class MyWidgetResource
+  VERSION = "v1"
+  URI = "ui://widget/my-widget.html?#{VERSION}"
+
+  class << self
+    def to_resource
+      MCP::Resource.new(
+        uri: URI,
+        name: "My Widget",
+        description: "Custom widget for displaying data",
+        mime_type: "text/html+skybridge"
+      )
+    end
+
+    def read
+      ActionController::Base.render(
+        template: "mcp_widgets/my_widget",
+        layout: false
+      )
+    end
+
+    def meta
+      base_url = ENV.fetch("BASE_URL", "http://localhost:3000")
+
+      {
+        "openai/widgetPrefersBorder" => true,
+        "openai/widgetDomain" => "https://chatgpt.com",
+        "openai/widgetCSP" => {
+          "connect_domains" => [ "https://chatgpt.com", base_url ],
+          "resource_domains" => [ base_url, "https://*.oaistatic.com" ]
+        }
+      }
+    end
+  end
+end
+```
+
+**6. Register the resource in `app/controllers/mcp_controller.rb`:**
+
+```ruby
+# Add to the resources: array in create_transport
+resources: [
+  LiveScoresWidgetResource.to_resource,
+  MyWidgetResource.to_resource
+]
+
+# Add to the resources_read_handler block
+resources_read_handler: lambda { |uri, server_context|
+  case uri
+  when LiveScoresWidgetResource::URI
+    LiveScoresWidgetResource.read
+  when MyWidgetResource::URI
+    MyWidgetResource.read
+  else
+    raise MCP::Error.new(
+      code: MCP::JSONRPC::ErrorCodes::INVALID_PARAMS,
+      message: "Unknown resource URI: #{uri}"
+    )
+  end
+}
+```
+
+**7. Rebuild assets and test:**
+
+```bash
+# Rebuild JavaScript
+npm run build
+
+# Increment VERSION in MyWidgetResource to v2, v3, etc. when making changes
+# This forces ChatGPT to fetch the updated widget
+```
 
 ## Production Deployment
 

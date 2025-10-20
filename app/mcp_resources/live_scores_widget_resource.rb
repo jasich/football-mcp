@@ -1,23 +1,7 @@
 # frozen_string_literal: true
 
 class LiveScoresWidgetResource
-  # Add version for cache busting during development
-  # v5: React integration
-  # v6: Replaced polling with proper OpenAI Apps SDK event listeners
-  # v7: Inline JavaScript bundle to fix iframe loading
-  # v8: Fix ERB escaping for inlined JS
-  # v9: Use full URL with BASE_URL env var (matching OpenAI examples)
-  # v10: Updated BASE_URL after server restart (cache bust)
-  # v11: Added script_domains to CSP metadata (incorrect)
-  # v12: Fixed CSP - added BASE_URL to resource_domains (correct way)
-  # v13: Updated to Cloudflare Tunnel URL (local.theleashboss.com)
-  # v14: Added CORS configuration for ChatGPT sandbox (incorrect wildcard)
-  # v15: Fixed CORS regex pattern for oaiusercontent.com (still didn't work - static files)
-  # v16: Serve JS through Rails controller for CORS middleware
-  # v17: Added BASE_URL to connect_domains for sourcemap support
-  # v18: Migrated to idiomatic Rails 8 asset pipeline (Propshaft + jsbundling-rails)
-  # v19: Refactored to use shared widget template with component registry pattern
-  VERSION = "v19"
+  VERSION = "v1"
   URI = "ui://widget/live-scores.html?#{VERSION}"
 
   class << self

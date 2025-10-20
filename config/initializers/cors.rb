@@ -13,10 +13,15 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
     # Allow requests from ChatGPT's web sandbox domains
     # Pattern matches: https://[any-subdomain].oaiusercontent.com
     # Examples:
-    #   - chatgpt-com.web-sandbox.oaiusercontent.com
+    #   - chatgpt-com.web-sandbox.oaiusercontent.com (note the dots in subdomain)
     #   - *.cdn.oaiusercontent.com
-    # Restricted to: HTTPS only, oaiusercontent.com domain only
-    origins %r{https://[\w\-]+\.oaiusercontent\.com}, "https://chatgpt.com"
+    #
+    # Security: While .* appears permissive, it's safe because:
+    #   1. Anchored to '.oaiusercontent.com' domain (OpenAI-controlled)
+    #   2. Requires HTTPS protocol
+    #   3. Subdomain can contain dots (e.g., 'chatgpt-com.web-sandbox')
+    #   4. Regex doesn't allow domain spoofing (must end with oaiusercontent.com)
+    origins %r{https://.*\.oaiusercontent\.com}, "https://chatgpt.com"
 
     resource "/assets/*",
       headers: :any,

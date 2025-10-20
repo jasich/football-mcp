@@ -16,7 +16,9 @@ Rails.application.configure do
   config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }
 
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
-  # config.asset_host = "http://assets.example.com"
+  # Configure asset host for OpenAI Apps SDK widget loading
+  # Widgets are loaded in iframes from chatgpt.com and need full absolute URLs
+  config.asset_host = ENV["BASE_URL"] if ENV["BASE_URL"].present?
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local

@@ -2,7 +2,7 @@
 
 class GetLiveScoresTool < MCP::Tool
   title "Get Live Scores"
-  description "Returns current live football scores"
+  description "Returns current live football scores. For a full scoreboard view, see the live-scores://board resource."
 
   input_schema(
     type: "object",
@@ -14,13 +14,30 @@ class GetLiveScoresTool < MCP::Tool
     }
   )
 
+  meta(
+    "openai/outputTemplate" => LiveScoresWidgetResource::URI,
+    "openai/toolInvocation/invoking" => "Loading live scores",
+    "openai/toolInvocation/invoked" => "Live scores displayed"
+  )
+
   def self.call(league: nil, server_context: nil)
     scores = generate_mock_scores(league)
 
-    MCP::Tool::Response.new([{
-      "type" => "text",
-      "text" => format_scores(scores)
-    }])
+    # ChatGPT injects structuredContent as window.openai.toolOutput
+    # So put the full widget data here (including possession indicators)
+    response = MCP::Tool::Response.new(
+      [ {
+        "type" => "text",
+        "text" => "Here are the live football scores. The widget below updates in real-time."
+      } ],
+      structured_content: {
+        # Full data for the widget including possession indicators
+        matches: scores,
+        lastUpdated: Time.now.iso8601
+      }
+    )
+
+    response
   end
 
   private
@@ -91,6 +108,12 @@ class GetLiveScoresTool < MCP::Tool
     end
   end
 
+  # NOTE: This method is currently unused but kept for potential future use.
+  # The tool currently returns structured_content for widget rendering,
+  # but this method could be used for:
+  # - Text-only fallback when widgets aren't supported
+  # - CLI/terminal output formatting
+  # - Logging or debugging purposes
   def self.format_scores(matches)
     return "No matches found" if matches.empty?
 

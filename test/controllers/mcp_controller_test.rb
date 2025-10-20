@@ -51,7 +51,8 @@ class McpControllerTest < ActionDispatch::IntegrationTest
     content = contents[0]
     assert_equal LiveScoresWidgetResource::URI, content["uri"]
     assert_equal "text/html+skybridge", content["mimeType"]
-    assert_includes content["text"], "<div id=\"react-root\">", "Should contain React mount point"
+    assert_includes content["text"], "<div id=\"react-root\"", "Should contain React mount point"
+    assert_includes content["text"], "data-component=\"LiveScoresWidget\"", "Should specify component name"
     assert_includes content["text"], "application", "Should include application.js script"
   end
 

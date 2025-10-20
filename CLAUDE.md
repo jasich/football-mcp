@@ -21,31 +21,45 @@ This server is **fully compatible with the OpenAI Apps SDK** (announced at DevDa
 bundle install
 npm install
 cp .env.example .env
-# Edit .env and set BASE_URL to your ngrok URL for ChatGPT testing
+# Edit .env and set BASE_URL to your tunnel URL for ChatGPT testing
+
+# Note: Procfile.dev assumes you have cloudflared installed and configured.
+# If you don't use Cloudflare Tunnel, comment out the "tunnel:" line in Procfile.dev
+# or use "rails server" directly instead of "bin/dev"
 ```
 
 **Start the server:**
 ```bash
-# For local testing only
-rails server
+# Recommended: Start everything with one command (Rails + JS build + Cloudflare Tunnel)
+# Note: Requires cloudflared to be installed and configured
+bin/dev
 
-# For ChatGPT integration with React widgets
-# 1. Start ngrok to expose your server
-ngrok http 3000
-
-# 2. Update .env with your ngrok URL
-# BASE_URL=https://your-url.ngrok-free.app
-
-# 3. Start Rails server
+# Alternative: For local testing only (no HTTPS tunnel, no auto-rebuild)
 rails server
 ```
 
-**Build React widgets:**
+**Setting up for ChatGPT integration:**
+
+1. **Configure your Cloudflare Tunnel** in `Procfile.dev`:
+   ```
+   tunnel: cloudflared tunnel run your-tunnel-name
+   ```
+
+2. **Start with `bin/dev`** - this will run Rails, JS watch, and your tunnel
+
+3. **Find your tunnel URL** from the Cloudflare dashboard and update `.env`:
+   ```
+   BASE_URL=https://your-tunnel-url.com
+   ```
+
+4. **Restart `bin/dev`** for the BASE_URL change to take effect
+
+**Build React widgets manually:**
 ```bash
 # One-time build
 npm run build
 
-# Watch mode (rebuilds on changes)
+# Watch mode (rebuilds on changes) - not needed if using bin/dev
 npm run watch
 ```
 
@@ -189,10 +203,22 @@ The application uses React for building interactive UI widgets that render insid
 
 **Structure:**
 - `app/javascript/components/` - React components
-- `app/javascript/application.js` - Entry point that mounts React
-- `app/views/mcp_widgets/` - ERB templates that use Rails asset helpers
+- `app/javascript/application.js` - Component registry and mounting logic
+- `app/views/mcp_widgets/widget.html.erb` - **Shared widget template** (reused by all widgets)
 - `app/assets/builds/` - Built JavaScript bundles (served by Propshaft)
 - `.env` - BASE_URL configuration (sets `config.asset_host` for full URLs)
+
+**Component Registry Pattern:**
+All widgets share a single HTML template. The `application.js` file maintains a registry of React components and dynamically mounts the correct component based on the `data-component` attribute:
+
+```javascript
+const COMPONENT_REGISTRY = {
+  'LiveScoresWidget': LiveScoresWidget,
+  'TeamStatsWidget': TeamStatsWidget,  // Add new widgets here
+};
+```
+
+This eliminates the need to create separate ERB templates for each widget.
 
 **Asset Pipeline (Rails 8 Idiomatic):**
 - **jsbundling-rails** - Manages JavaScript bundling with esbuild
@@ -209,13 +235,24 @@ The application uses React for building interactive UI widgets that render insid
 
 **Development Workflow:**
 1. Edit React components in `app/javascript/components/`
-2. Run `npm run watch` to rebuild on changes (outputs to `app/assets/builds/`)
-3. Increment resource `VERSION` constant to bust ChatGPT's cache
-4. Test in ChatGPT (resource URI includes version, e.g., `ui://widget/live-scores.html?v18`)
+2. Add component to registry in `app/javascript/application.js` (one line)
+3. Run `npm run watch` to rebuild on changes (outputs to `app/assets/builds/`)
+4. Increment resource `VERSION` constant to bust ChatGPT's cache
+5. Test in ChatGPT (resource URI includes version, e.g., `ui://widget/live-scores.html?v19`)
 
 ### Adding New React Components
 
-**1. Create a new React component in `app/javascript/components/`:**
+Adding a new widget requires only **6 steps**:
+1. Create the React component
+2. Add it to the component registry (one line in `application.js`)
+3. Create a resource class that uses the shared template
+4. Register the resource in the MCP controller
+5. Rebuild assets
+6. Test
+
+**No separate ERB template needed!** All widgets share `app/views/mcp_widgets/widget.html.erb`.
+
+**Step 1: Create a new React component in `app/javascript/components/`:**
 
 ```jsx
 // app/javascript/components/ScoreCard.jsx
@@ -248,7 +285,7 @@ const ScoreCard = ({ match }) => {
 export default ScoreCard;
 ```
 
-**2. Use the OpenAI Apps SDK hooks to read tool data:**
+**Step 2: Use the OpenAI Apps SDK hooks to read tool data:**
 
 ```jsx
 // app/javascript/components/MyWidget.jsx
@@ -301,41 +338,20 @@ const MyWidget = () => {
 export default MyWidget;
 ```
 
-**3. Register the component in `app/javascript/application.js`:**
+**Step 3: Register the component in `app/javascript/application.js`:**
+
+Simply add your component to the `COMPONENT_REGISTRY`:
 
 ```javascript
-import React from 'react';
-import { createRoot } from 'react-dom/client';
 import MyWidget from './components/MyWidget';
 
-document.addEventListener('DOMContentLoaded', () => {
-  const container = document.getElementById('react-root');
-  if (container) {
-    const root = createRoot(container);
-    root.render(<MyWidget />);
-  }
-});
+const COMPONENT_REGISTRY = {
+  'LiveScoresWidget': LiveScoresWidget,
+  'MyWidget': MyWidget,  // Add this line
+};
 ```
 
-**4. Create an ERB view template in `app/views/mcp_widgets/`:**
-
-```erb
-<!-- app/views/mcp_widgets/my_widget.html.erb -->
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My Widget</title>
-  <%= javascript_include_tag "application", type: "module" %>
-</head>
-<body>
-  <div id="react-root"></div>
-</body>
-</html>
-```
-
-**5. Create a resource class in `app/mcp_resources/`:**
+**Step 4: Create a resource class in `app/mcp_resources/`:**
 
 ```ruby
 # app/mcp_resources/my_widget_resource.rb
@@ -355,8 +371,12 @@ class MyWidgetResource
 
     def read
       ActionController::Base.render(
-        template: "mcp_widgets/my_widget",
-        layout: false
+        template: "mcp_widgets/widget",  # Shared template
+        layout: false,
+        locals: {
+          widget_title: "My Widget",
+          component_name: "MyWidget"  # Must match COMPONENT_REGISTRY key
+        }
       )
     end
 
@@ -376,7 +396,7 @@ class MyWidgetResource
 end
 ```
 
-**6. Register the resource in `app/controllers/mcp_controller.rb`:**
+**Step 5: Register the resource in `app/controllers/mcp_controller.rb`:**
 
 ```ruby
 # Add to the resources: array in create_transport
@@ -401,7 +421,7 @@ resources_read_handler: lambda { |uri, server_context|
 }
 ```
 
-**7. Rebuild assets and test:**
+**Step 6: Rebuild assets and test:**
 
 ```bash
 # Rebuild JavaScript

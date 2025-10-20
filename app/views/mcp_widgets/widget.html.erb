@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Live Football Scores</title>
+  <title><%= local_assigns[:widget_title] || "Widget" %></title>
   <%= javascript_include_tag "application", type: "module" %>
 </head>
 <body>
-  <div id="react-root"></div>
+  <div id="react-root" data-component="<%= local_assigns[:component_name] %>"></div>
 </body>
 </html>

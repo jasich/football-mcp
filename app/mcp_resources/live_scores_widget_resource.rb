@@ -16,7 +16,8 @@ class LiveScoresWidgetResource
   # v16: Serve JS through Rails controller for CORS middleware
   # v17: Added BASE_URL to connect_domains for sourcemap support
   # v18: Migrated to idiomatic Rails 8 asset pipeline (Propshaft + jsbundling-rails)
-  VERSION = "v18"
+  # v19: Refactored to use shared widget template with component registry pattern
+  VERSION = "v19"
   URI = "ui://widget/live-scores.html?#{VERSION}"
 
   class << self
@@ -31,8 +32,12 @@ class LiveScoresWidgetResource
 
     def read
       ActionController::Base.render(
-        template: "mcp_widgets/live_scores",
-        layout: false
+        template: "mcp_widgets/widget",
+        layout: false,
+        locals: {
+          widget_title: "Live Football Scores",
+          component_name: "LiveScoresWidget"
+        }
       )
     end
 

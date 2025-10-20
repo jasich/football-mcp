@@ -1,8 +1,8 @@
 # Football MCP Server
 
-A Rails 8 application that implements a [Model Context Protocol](https://modelcontextprotocol.io/) server for American football data using the [official Ruby MCP SDK](https://github.com/modelcontextprotocol/ruby-sdk).
+An example Rails 8 application that demonstrates how to build a [Model Context Protocol](https://modelcontextprotocol.io/) server with interactive UI components using the [official Ruby MCP SDK](https://github.com/modelcontextprotocol/ruby-sdk) and the OpenAI Apps SDK.
 
-**✨ OpenAI Apps SDK Compatible** - This server uses Streamable HTTP transport with full support for Server-Sent Events (SSE), making it ready for ChatGPT integration with interactive React widgets.
+**✨ OpenAI Apps SDK Example** - This application highlights how to use the OpenAI Apps SDK to build out UI components for your Rails MCP server, including React widgets that render inside ChatGPT using Streamable HTTP transport and Server-Sent Events (SSE).
 
 ## Features
 
@@ -10,7 +10,21 @@ A Rails 8 application that implements a [Model Context Protocol](https://modelco
 - **Server-Sent Events (SSE)** - Real-time streaming of tool responses
 - **Session management** - Proper handling of multiple concurrent clients
 - **React 19 widgets** - Interactive UIs that render inside ChatGPT
-- **Production-ready** - Can be deployed to serverless platforms (AWS Lambda, Vercel, Cloudflare Workers)
+- **Component registry pattern** - Reusable widget architecture for rapid development
+
+## Screenshots
+
+### Live Scores Widget
+
+![Live Scores Widget](./docs/images/live-scores.png)
+
+The Live Scores Widget displays real-time football game scores in an interactive React component rendered inside ChatGPT.
+
+### Team Info Resource
+
+![Team Info Resource](./docs/images/team-info.png)
+
+The Team Info resource provides structured NFL team data including divisions, colors, and stadium information.
 
 ## Setup
 
@@ -29,7 +43,7 @@ cp .env.example .env
 bin/dev
 
 # Alternative: For local testing only (no HTTPS tunnel, no auto-rebuild)
-rails server
+bin/rails server
 ```
 
 **Build React widgets manually:**
@@ -45,7 +59,7 @@ npm run watch
 **Run tests:**
 
 ```bash
-rails test
+bin/rails test
 ```
 
 **Run linter:**
@@ -112,8 +126,8 @@ The application uses **Streamable HTTP transport** which supports multiple HTTP 
 - **DELETE** - Session cleanup (requires Mcp-Session-Id header)
 
 **Request Flow:**
-1. **Routes** (`config/routes.rb:12-14`): All three HTTP methods route to `McpController#handle`
-2. **Controller** (`app/controllers/mcp_controller.rb:8-33`):
+1. **Routes** (`config/routes.rb`): All three HTTP methods route to `McpController#handle`
+2. **Controller** (`app/controllers/mcp_controller.rb`):
    - Uses singleton pattern to maintain a single `StreamableHTTPTransport` instance across requests
    - This preserves session state for SSE connections
    - Delegates all request handling to `transport.handle_request(request)`
@@ -172,6 +186,7 @@ tools: [GetLiveScoresTool, MyTool]
 ### Current Tools
 
 - **GetLiveScoresTool** (`app/mcp_tools/get_live_scores_tool.rb`): Returns mock live football scores with optional league filtering. Demonstrates response formatting and data filtering patterns.
+- **GetTeamInfoTool** (`app/mcp_tools/get_team_info_tool.rb`): Returns information about NFL teams including division, colors, and stadium details. Demonstrates structured data responses.
 
 ## Adding Resources
 
@@ -270,7 +285,7 @@ const COMPONENT_REGISTRY = {
 
 This eliminates the need to create separate ERB templates for each widget.
 
-### Asset Pipeline (Rails 8 Idiomatic)
+### Asset Pipeline
 
 - **jsbundling-rails** - Manages JavaScript bundling with esbuild
 - **Propshaft** - Modern asset pipeline that serves files from `app/assets/builds/`
@@ -457,53 +472,17 @@ npm run build
 
 Add your MCP server to ChatGPT, then reference your new resource in a conversation. ChatGPT will load your widget in an iframe.
 
-## Production Deployment
-
-### For OpenAI Apps SDK / ChatGPT Integration
-
-**Requirements:**
-- HTTPS endpoint (ChatGPT requires secure connections)
-- Low cold-start latency
-- CORS headers to allow `chatgpt.com`
-
-**Production Platforms:**
-- AWS Lambda with API Gateway
-- Vercel
-- Cloudflare Workers
-- Heroku
-- Fly.io
-- Any platform supporting long-lived HTTP connections for SSE
-
-**Security Considerations:**
-- Implement authentication via custom headers or bearer tokens
-- Restrict CORS to only allow `chatgpt.com` for ChatGPT apps
-- Consider rate limiting for production use
-- Monitor session count and implement cleanup for abandoned sessions
-
-### Sending Real-time Updates
-
-To push notifications to connected SSE clients (e.g., live score updates):
-
-```ruby
-# In your tool or background job
-server.notify_tools_list_changed  # Notify when tools change
-server.notify_prompts_list_changed  # Notify when prompts change
-server.notify_resources_list_changed  # Notify when resources change
-```
-
-Note: The transport instance must be accessible to send notifications. Consider making it available via a global registry or singleton pattern for background jobs.
-
 ## Testing
 
 ```bash
 # Run all tests
-rails test
+bin/rails test
 
 # Run specific test file
-rails test test/controllers/mcp_controller_test.rb
+bin/rails test test/controllers/mcp_controller_test.rb
 
 # Run with verbose output
-rails test -v
+bin/rails test -v
 ```
 
 ## Project Structure

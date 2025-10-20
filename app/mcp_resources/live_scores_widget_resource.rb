@@ -15,7 +15,8 @@ class LiveScoresWidgetResource
   # v15: Fixed CORS regex pattern for oaiusercontent.com (still didn't work - static files)
   # v16: Serve JS through Rails controller for CORS middleware
   # v17: Added BASE_URL to connect_domains for sourcemap support
-  VERSION = "v17"
+  # v18: Migrated to idiomatic Rails 8 asset pipeline (Propshaft + jsbundling-rails)
+  VERSION = "v18"
   URI = "ui://widget/live-scores.html?#{VERSION}"
 
   class << self

@@ -40,5 +40,9 @@ yarn-debug.log*
 # Ignore coverage files
 /coverage/
 
+# Ignore built JavaScript assets (built by jsbundling-rails)
 /app/assets/builds/*
 !/app/assets/builds/.keep
+
+# Ignore public assets directory (not used with Propshaft)
+/public/assets

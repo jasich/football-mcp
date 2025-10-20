@@ -13,10 +13,6 @@ Rails.application.routes.draw do
   get "mcp" => "mcp#handle"
   delete "mcp" => "mcp#handle"
 
-  # Serve JavaScript bundles and sourcemaps through Rails for CORS support
-  get "assets/application.js" => "assets#javascript"
-  get "assets/application.js.map" => "assets#sourcemap"
-
   # Defines the root path route ("/")
   # root "posts#index"
 end

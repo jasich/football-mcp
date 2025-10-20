@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Live Football Scores</title>
-  <script type="module" src="<%= ENV.fetch('BASE_URL', 'http://localhost:3000') %>/assets/application.js"></script>
+  <%= javascript_include_tag "application", type: "module" %>
 </head>
 <body>
   <div id="react-root"></div>

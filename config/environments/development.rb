@@ -76,4 +76,8 @@ Rails.application.configure do
   if ENV["ALLOWED_HOST"].present?
     config.hosts << ENV["ALLOWED_HOST"]
   end
+
+  # Configure asset host for OpenAI Apps SDK widget loading
+  # Widgets are loaded in iframes from chatgpt.com and need full absolute URLs
+  config.asset_host = ENV.fetch("BASE_URL", "http://localhost:3000")
 end

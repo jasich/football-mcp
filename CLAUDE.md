@@ -236,21 +236,28 @@ The application uses React for building interactive UI widgets that render insid
 **Structure:**
 - `app/javascript/components/` - React components
 - `app/javascript/application.js` - Entry point that mounts React
-- `app/views/mcp_widgets/` - ERB templates that reference the bundled JS
-- `public/assets/` - Built JavaScript bundles
-- `.env` - BASE_URL configuration for widget script loading
+- `app/views/mcp_widgets/` - ERB templates that use Rails asset helpers
+- `app/assets/builds/` - Built JavaScript bundles (served by Propshaft)
+- `.env` - BASE_URL configuration (sets `config.asset_host` for full URLs)
+
+**Asset Pipeline (Rails 8 Idiomatic):**
+- **jsbundling-rails** - Manages JavaScript bundling with esbuild
+- **Propshaft** - Modern asset pipeline that serves files from `app/assets/builds/`
+- esbuild builds to `app/assets/builds/` (not `public/`)
+- Propshaft adds digest fingerprinting in production (e.g., `application-abc123.js`)
+- Views use `javascript_include_tag "application"` which generates full URLs via `config.asset_host`
+- CORS headers applied automatically by rack-cors middleware
 
 **Key Patterns:**
 - Uses `useOpenAiGlobal()` hook with `useSyncExternalStore` to reactively subscribe to `window.openai` changes
 - Listens for `openai:set_globals` events instead of polling
 - Reads tool output from `window.openai.toolOutput`
-- Widget HTML references JavaScript bundle via full URL: `<script src="{BASE_URL}/assets/application.js">`
 
 **Development Workflow:**
 1. Edit React components in `app/javascript/components/`
-2. Run `npm run watch` to rebuild on changes
+2. Run `npm run watch` to rebuild on changes (outputs to `app/assets/builds/`)
 3. Increment resource `VERSION` constant to bust ChatGPT's cache
-4. Test in ChatGPT (resource URI includes version, e.g., `ui://widget/live-scores.html?v9`)
+4. Test in ChatGPT (resource URI includes version, e.g., `ui://widget/live-scores.html?v18`)
 
 ## Production Deployment
 

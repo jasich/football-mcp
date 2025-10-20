@@ -1,36 +1,5 @@
-import React, { useSyncExternalStore } from 'react';
-
-// Custom hook to subscribe to window.openai global changes
-// Based on OpenAI Apps SDK documentation pattern
-const SET_GLOBALS_EVENT_TYPE = 'openai:set_globals';
-
-function useOpenAiGlobal(key) {
-  return useSyncExternalStore(
-    (onChange) => {
-      const handleSetGlobal = (event) => {
-        const value = event.detail?.globals?.[key];
-        if (value === undefined) {
-          return;
-        }
-        onChange();
-      };
-
-      window.addEventListener(SET_GLOBALS_EVENT_TYPE, handleSetGlobal, {
-        passive: true,
-      });
-
-      return () => {
-        window.removeEventListener(SET_GLOBALS_EVENT_TYPE, handleSetGlobal);
-      };
-    },
-    () => window.openai?.[key]
-  );
-}
-
-// Convenience hooks for common tool data
-function useToolOutput() {
-  return useOpenAiGlobal('toolOutput');
-}
+import React from 'react';
+import { useToolOutput } from '../utils/openai-hooks';
 
 const LiveScoresWidget = () => {
   // Use the reactive hook instead of polling

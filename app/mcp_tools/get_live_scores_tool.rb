@@ -26,10 +26,10 @@ class GetLiveScoresTool < MCP::Tool
     # ChatGPT injects structuredContent as window.openai.toolOutput
     # So put the full widget data here (including possession indicators)
     response = MCP::Tool::Response.new(
-      [{
+      [ {
         "type" => "text",
         "text" => "Here are the live football scores. The widget below updates in real-time."
-      }],
+      } ],
       structured_content: {
         # Full data for the widget including possession indicators
         matches: scores,
@@ -108,6 +108,12 @@ class GetLiveScoresTool < MCP::Tool
     end
   end
 
+  # NOTE: This method is currently unused but kept for potential future use.
+  # The tool currently returns structured_content for widget rendering,
+  # but this method could be used for:
+  # - Text-only fallback when widgets aren't supported
+  # - CLI/terminal output formatting
+  # - Logging or debugging purposes
   def self.format_scores(matches)
     return "No matches found" if matches.empty?
 

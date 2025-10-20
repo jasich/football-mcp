@@ -12,7 +12,7 @@ class GetTeamInfoTool < MCP::Tool
         description: "The name of the team to get information about"
       }
     },
-    required: ["team_name"]
+    required: [ "team_name" ]
   )
 
   meta(
@@ -25,17 +25,17 @@ class GetTeamInfoTool < MCP::Tool
     team_data = find_team_data(team_name)
 
     if team_data.nil?
-      return MCP::Tool::Response.new([{
+      return MCP::Tool::Response.new([ {
         "type" => "text",
         "text" => "Sorry, I couldn't find information for '#{team_name}'. Available teams: #{available_teams.join(', ')}"
-      }])
+      } ])
     end
 
     response = MCP::Tool::Response.new(
-      [{
+      [ {
         "type" => "text",
         "text" => "Here's detailed information about the #{team_data[:name]}."
-      }],
+      } ],
       structured_content: team_data
     )
 

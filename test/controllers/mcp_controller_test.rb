@@ -20,12 +20,17 @@ class McpControllerTest < ActionDispatch::IntegrationTest
 
     resources = json.dig("result", "resources")
     assert_not_nil resources, "Result should contain resources array"
-    assert_equal 1, resources.length, "Should only have widget resource"
+    assert_equal 2, resources.length, "Should have two widget resources"
 
-    # Should have the widget resource
-    widget = resources.find { |r| r["uri"].start_with?("ui://widget/live-scores.html") }
-    assert_not_nil widget, "Widget resource should be present"
-    assert_equal "Live Scores Widget", widget["name"]
+    # Should have the live scores widget resource
+    live_scores_widget = resources.find { |r| r["uri"].start_with?("ui://widget/live-scores.html") }
+    assert_not_nil live_scores_widget, "Live Scores Widget resource should be present"
+    assert_equal "Live Scores Widget", live_scores_widget["name"]
+
+    # Should have the team info widget resource
+    team_info_widget = resources.find { |r| r["uri"].start_with?("ui://widget/team-info.html") }
+    assert_not_nil team_info_widget, "Team Info Widget resource should be present"
+    assert_equal "Team Info Widget", team_info_widget["name"]
   end
 
   test "should read widget resource" do

@@ -7,7 +7,15 @@ class LiveScoresWidgetResource
   # v7: Inline JavaScript bundle to fix iframe loading
   # v8: Fix ERB escaping for inlined JS
   # v9: Use full URL with BASE_URL env var (matching OpenAI examples)
-  VERSION = "v9"
+  # v10: Updated BASE_URL after server restart (cache bust)
+  # v11: Added script_domains to CSP metadata (incorrect)
+  # v12: Fixed CSP - added BASE_URL to resource_domains (correct way)
+  # v13: Updated to Cloudflare Tunnel URL (local.theleashboss.com)
+  # v14: Added CORS configuration for ChatGPT sandbox (incorrect wildcard)
+  # v15: Fixed CORS regex pattern for oaiusercontent.com (still didn't work - static files)
+  # v16: Serve JS through Rails controller for CORS middleware
+  # v17: Added BASE_URL to connect_domains for sourcemap support
+  VERSION = "v17"
   URI = "ui://widget/live-scores.html?#{VERSION}"
 
   class << self
@@ -28,12 +36,14 @@ class LiveScoresWidgetResource
     end
 
     def meta
+      base_url = ENV.fetch("BASE_URL", "http://localhost:3000")
+
       {
         "openai/widgetPrefersBorder" => true,
         "openai/widgetDomain" => "https://chatgpt.com",
         "openai/widgetCSP" => {
-          "connect_domains" => [ "https://chatgpt.com" ],
-          "resource_domains" => [ "https://*.oaistatic.com" ]
+          "connect_domains" => [ "https://chatgpt.com", base_url ],
+          "resource_domains" => [ base_url, "https://*.oaistatic.com" ]
         }
       }
     end

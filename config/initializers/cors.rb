@@ -1,16 +1,22 @@
-# Be sure to restart your server when you modify this file.
+# frozen_string_literal: true
 
-# Avoid CORS issues when API is called from the frontend app.
-# Handle Cross-Origin Resource Sharing (CORS) in order to accept cross-origin Ajax requests.
+# Configure CORS for OpenAI Apps SDK / ChatGPT integration
+# Allow ChatGPT's sandbox to load JavaScript bundles and make API calls
 
-# Read more: https://github.com/cyu/rack-cors
+Rails.application.config.middleware.insert_before 0, Rack::Cors do
+  allow do
+    # Allow requests from ChatGPT's web sandbox domains
+    # The sandbox uses domains like: chatgpt-com.web-sandbox.oaiusercontent.com
+    origins %r{https://.*\.oaiusercontent\.com}, "https://chatgpt.com"
 
-# Rails.application.config.middleware.insert_before 0, Rack::Cors do
-#   allow do
-#     origins "example.com"
-#
-#     resource "*",
-#       headers: :any,
-#       methods: [:get, :post, :put, :patch, :delete, :options, :head]
-#   end
-# end
+    resource "/assets/*",
+      headers: :any,
+      methods: [ :get, :options ],
+      credentials: false
+
+    resource "/mcp",
+      headers: :any,
+      methods: [ :get, :post, :delete, :options ],
+      credentials: false
+  end
+end

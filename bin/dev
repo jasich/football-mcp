@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-if gem list --no-installed --exact --silent foreman; then
+if ! gem list foreman -i >/dev/null 2>&1; then
   echo "Installing foreman..."
   gem install foreman
 fi

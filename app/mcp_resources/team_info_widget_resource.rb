@@ -3,7 +3,8 @@
 class TeamInfoWidgetResource
   # Add version for cache busting during development
   # v1: Initial version with team info widget
-  VERSION = "v1"
+  # v2: Converted to Tailwind CSS with dark mode support
+  VERSION = "v2"
   URI = "ui://widget/team-info.html?#{VERSION}"
 
   class << self

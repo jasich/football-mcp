@@ -6,7 +6,7 @@ const TeamInfoWidget = () => {
 
   const renderTeamInfo = () => {
     if (!toolOutput) {
-      return <p>Waiting for team data...</p>;
+      return <p className="text-gray-700 dark:text-gray-300">Waiting for team data...</p>;
     }
 
     const {
@@ -26,75 +26,75 @@ const TeamInfoWidget = () => {
     return (
       <>
         {/* Team Header */}
-        <div className="team-header">
-          <div className="team-logo">{logo}</div>
-          <div className="team-header-info">
-            <h2 className="team-name">{name}</h2>
-            <div className="team-meta">
+        <div className="flex items-center gap-5 mb-8 p-5 bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-indigo-600 dark:to-purple-700 rounded-xl text-white">
+          <div className="text-6xl leading-none">{logo}</div>
+          <div className="flex-1">
+            <h2 className="m-0 mb-2 text-[28px] font-bold">{name}</h2>
+            <div className="text-sm opacity-90 mb-1">
               {league} • {conference} Conference • {division} Division
             </div>
-            <div className="team-record">
+            <div className="text-lg font-semibold mt-2">
               Record: {record.wins}-{record.losses}{record.ties > 0 && `-${record.ties}`}
             </div>
           </div>
         </div>
 
         {/* Stats Section */}
-        <div className="section">
-          <h3 className="section-title">Season Stats</h3>
-          <div className="stats-grid">
-            <div className="stat-item">
-              <div className="stat-label">Points Per Game</div>
-              <div className="stat-value">{stats.points_per_game}</div>
+        <div className="mb-6 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+          <h3 className="m-0 mb-4 text-lg font-semibold">Season Stats</h3>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-3">
+            <div className="bg-white dark:bg-gray-700 p-3 rounded-md text-center">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Points Per Game</div>
+              <div className="text-xl font-bold">{stats.points_per_game}</div>
             </div>
-            <div className="stat-item">
-              <div className="stat-label">Points Allowed</div>
-              <div className="stat-value">{stats.points_allowed}</div>
+            <div className="bg-white dark:bg-gray-700 p-3 rounded-md text-center">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Points Allowed</div>
+              <div className="text-xl font-bold">{stats.points_allowed}</div>
             </div>
-            <div className="stat-item">
-              <div className="stat-label">Total Yards/Game</div>
-              <div className="stat-value">{stats.total_yards_per_game}</div>
+            <div className="bg-white dark:bg-gray-700 p-3 rounded-md text-center">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total Yards/Game</div>
+              <div className="text-xl font-bold">{stats.total_yards_per_game}</div>
             </div>
-            <div className="stat-item">
-              <div className="stat-label">Passing Yards/Game</div>
-              <div className="stat-value">{stats.passing_yards_per_game}</div>
+            <div className="bg-white dark:bg-gray-700 p-3 rounded-md text-center">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Passing Yards/Game</div>
+              <div className="text-xl font-bold">{stats.passing_yards_per_game}</div>
             </div>
-            <div className="stat-item">
-              <div className="stat-label">Rushing Yards/Game</div>
-              <div className="stat-value">{stats.rushing_yards_per_game}</div>
+            <div className="bg-white dark:bg-gray-700 p-3 rounded-md text-center">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Rushing Yards/Game</div>
+              <div className="text-xl font-bold">{stats.rushing_yards_per_game}</div>
             </div>
           </div>
         </div>
 
         {/* Recent Games */}
-        <div className="section">
-          <h3 className="section-title">Recent Games</h3>
-          <div className="games-list">
+        <div className="mb-6 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+          <h3 className="m-0 mb-4 text-lg font-semibold">Recent Games</h3>
+          <div className="flex flex-col gap-2">
             {recent_games.map((game, idx) => (
-              <div key={idx} className={`game-item ${game.result === 'W' ? 'win' : 'loss'}`}>
-                <div className="game-result">{game.result}</div>
-                <div className="game-details">
-                  <div className="game-opponent">vs {game.opponent}</div>
-                  <div className="game-score">{game.score}</div>
+              <div key={idx} className={`flex items-center gap-3 bg-white dark:bg-gray-700 p-3 rounded-md ${game.result === 'W' ? 'border-l-4 border-l-emerald-500' : 'border-l-4 border-l-red-500'}`}>
+                <div className={`font-bold text-lg w-6 ${game.result === 'W' ? 'text-emerald-500' : 'text-red-500'}`}>{game.result}</div>
+                <div className="flex-1">
+                  <div className="font-medium">vs {game.opponent}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">{game.score}</div>
                 </div>
-                <div className="game-date">{new Date(game.date).toLocaleDateString()}</div>
+                <div className="text-xs text-gray-400 dark:text-gray-500">{new Date(game.date).toLocaleDateString()}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Key Players */}
-        <div className="section">
-          <h3 className="section-title">Key Players</h3>
-          <div className="players-list">
+        <div className="mb-6 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+          <h3 className="m-0 mb-4 text-lg font-semibold">Key Players</h3>
+          <div className="flex flex-col gap-2">
             {key_players.map((player, idx) => (
-              <div key={idx} className="player-item">
-                <div className="player-header">
-                  <span className="player-number">#{player.number}</span>
-                  <span className="player-name">{player.name}</span>
-                  <span className="player-position">{player.position}</span>
+              <div key={idx} className="bg-white dark:bg-gray-700 p-3 rounded-md">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-bold text-gray-500 dark:text-gray-400 min-w-[32px]">#{player.number}</span>
+                  <span className="font-semibold flex-1">{player.name}</span>
+                  <span className="bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded text-xs font-semibold text-gray-600 dark:text-gray-300">{player.position}</span>
                 </div>
-                <div className="player-stats">{player.stats}</div>
+                <div className="text-[13px] text-gray-500 dark:text-gray-400 ml-10">{player.stats}</div>
               </div>
             ))}
           </div>
@@ -102,11 +102,11 @@ const TeamInfoWidget = () => {
 
         {/* Next Game */}
         {next_game && (
-          <div className="section next-game-section">
-            <h3 className="section-title">Next Game</h3>
-            <div className="next-game">
-              <div className="next-game-opponent">vs {next_game.opponent}</div>
-              <div className="next-game-details">
+          <div className="mb-6 bg-amber-100 dark:bg-amber-900 rounded-lg p-4 border-2 border-amber-400 dark:border-amber-600">
+            <h3 className="m-0 mb-4 text-lg font-semibold text-amber-900 dark:text-amber-100">Next Game</h3>
+            <div className="text-center">
+              <div className="text-xl font-bold mb-2 text-amber-900 dark:text-amber-100">vs {next_game.opponent}</div>
+              <div className="text-sm text-amber-800 dark:text-amber-200">
                 {new Date(next_game.date).toLocaleDateString()} • {next_game.location}
               </div>
             </div>
@@ -117,183 +117,8 @@ const TeamInfoWidget = () => {
   };
 
   return (
-    <div id="team-info-root">
-      <style>{`
-        #team-info-root {
-          font-family: system-ui, -apple-system, sans-serif;
-          padding: 20px;
-          max-width: 700px;
-          margin: 0 auto;
-        }
-        .team-header {
-          display: flex;
-          align-items: center;
-          gap: 20px;
-          margin-bottom: 30px;
-          padding: 20px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          border-radius: 12px;
-          color: white;
-        }
-        .team-logo {
-          font-size: 64px;
-          line-height: 1;
-        }
-        .team-header-info {
-          flex: 1;
-        }
-        .team-name {
-          margin: 0 0 8px 0;
-          font-size: 28px;
-          font-weight: bold;
-        }
-        .team-meta {
-          font-size: 14px;
-          opacity: 0.9;
-          margin-bottom: 4px;
-        }
-        .team-record {
-          font-size: 18px;
-          font-weight: 600;
-          margin-top: 8px;
-        }
-        .section {
-          margin-bottom: 24px;
-          background: #f9fafb;
-          border-radius: 8px;
-          padding: 16px;
-        }
-        .section-title {
-          margin: 0 0 16px 0;
-          font-size: 18px;
-          font-weight: 600;
-          color: #1f2937;
-        }
-        .stats-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-          gap: 12px;
-        }
-        .stat-item {
-          background: white;
-          padding: 12px;
-          border-radius: 6px;
-          text-align: center;
-        }
-        .stat-label {
-          font-size: 12px;
-          color: #6b7280;
-          margin-bottom: 4px;
-        }
-        .stat-value {
-          font-size: 20px;
-          font-weight: bold;
-          color: #1f2937;
-        }
-        .games-list {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        .game-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          background: white;
-          padding: 12px;
-          border-radius: 6px;
-          border-left: 4px solid #e5e7eb;
-        }
-        .game-item.win {
-          border-left-color: #10b981;
-        }
-        .game-item.loss {
-          border-left-color: #ef4444;
-        }
-        .game-result {
-          font-weight: bold;
-          font-size: 18px;
-          width: 24px;
-        }
-        .game-item.win .game-result {
-          color: #10b981;
-        }
-        .game-item.loss .game-result {
-          color: #ef4444;
-        }
-        .game-details {
-          flex: 1;
-        }
-        .game-opponent {
-          font-weight: 500;
-        }
-        .game-score {
-          font-size: 14px;
-          color: #6b7280;
-        }
-        .game-date {
-          font-size: 12px;
-          color: #9ca3af;
-        }
-        .players-list {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        .player-item {
-          background: white;
-          padding: 12px;
-          border-radius: 6px;
-        }
-        .player-header {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 4px;
-        }
-        .player-number {
-          font-weight: bold;
-          color: #6b7280;
-          min-width: 32px;
-        }
-        .player-name {
-          font-weight: 600;
-          flex: 1;
-        }
-        .player-position {
-          background: #e5e7eb;
-          padding: 2px 8px;
-          border-radius: 4px;
-          font-size: 12px;
-          font-weight: 600;
-          color: #4b5563;
-        }
-        .player-stats {
-          font-size: 13px;
-          color: #6b7280;
-          margin-left: 40px;
-        }
-        .next-game-section {
-          background: #fef3c7;
-          border: 2px solid #fbbf24;
-        }
-        .next-game {
-          text-align: center;
-        }
-        .next-game-opponent {
-          font-size: 20px;
-          font-weight: bold;
-          margin-bottom: 8px;
-          color: #92400e;
-        }
-        .next-game-details {
-          font-size: 14px;
-          color: #78350f;
-        }
-      `}</style>
-      <div className="team-info-container">
-        {renderTeamInfo()}
-      </div>
+    <div className="font-sans p-5 max-w-[700px] mx-auto bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen">
+      {renderTeamInfo()}
     </div>
   );
 };

@@ -22,10 +22,10 @@ const LiveScoresWidget = () => {
     if (matches.length === 0) {
       return (
         <>
-          <p>No live matches available</p>
-          <details style={{ marginTop: '20px', fontSize: '12px', fontFamily: 'monospace' }}>
-            <summary>Debug Info (click to expand)</summary>
-            <pre style={{ background: '#f5f5f5', padding: '10px', overflow: 'auto', maxHeight: '300px' }}>
+          <p className="text-gray-700 dark:text-gray-300">No live matches available</p>
+          <details className="mt-5 text-xs font-mono">
+            <summary className="cursor-pointer text-gray-700 dark:text-gray-300">Debug Info (click to expand)</summary>
+            <pre className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-2.5 overflow-auto max-h-[300px] mt-2">
               {JSON.stringify(toolOutput, null, 2)}
             </pre>
           </details>
@@ -45,43 +45,43 @@ const LiveScoresWidget = () => {
     return (
       <>
         {lastUpdated && (
-          <div style={{ textAlign: 'center', color: '#666', fontSize: '12px', marginBottom: '16px' }}>
+          <div className="text-center text-gray-600 dark:text-gray-400 text-xs mb-4">
             Last updated: {new Date(lastUpdated).toLocaleTimeString()}
           </div>
         )}
         {Object.entries(matchesByLeague).map(([league, leagueMatches]) => (
-          <div key={league} className="league-section">
-            <div className="league-title">{league}</div>
+          <div key={league} className="mb-8">
+            <div className="text-lg font-bold mb-3 pb-2 border-b-2 border-gray-800 dark:border-gray-200">{league}</div>
             {leagueMatches.map((match, idx) => (
-              <div key={idx} className="match">
-                <div className="team-row">
-                  <span className="team-name">
-                    {match.possession === 'home' && <span className="possession">🏈</span>}
+              <div key={idx} className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mb-3">
+                <div className="flex justify-between items-center my-1">
+                  <span className="font-medium">
+                    {match.possession === 'home' && <span className="text-emerald-600 dark:text-emerald-400 mr-2">🏈</span>}
                     {match.home_team}
                   </span>
-                  <span className="team-score">{match.home_score}</span>
+                  <span className="font-bold text-xl min-w-[30px] text-right">{match.home_score}</span>
                 </div>
-                <div className="team-row">
-                  <span className="team-name">
-                    {match.possession === 'away' && <span className="possession">🏈</span>}
+                <div className="flex justify-between items-center my-1">
+                  <span className="font-medium">
+                    {match.possession === 'away' && <span className="text-emerald-600 dark:text-emerald-400 mr-2">🏈</span>}
                     {match.away_team}
                   </span>
-                  <span className="team-score">{match.away_score}</span>
+                  <span className="font-bold text-xl min-w-[30px] text-right">{match.away_score}</span>
                 </div>
-                <div className="match-status">
+                <div className="text-center text-gray-600 dark:text-gray-400 text-sm mt-2 pt-2 border-t border-gray-300 dark:border-gray-600">
                   {match.quarter} - {match.time_remaining}
                 </div>
-                <div className="actions-row">
+                <div className="flex flex-wrap gap-2.5 mt-3">
                   <button
                     type="button"
-                    className="cta-button"
+                    className="flex-1 min-w-[200px] bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 border-0 rounded-md px-3.5 py-2.5 text-sm font-semibold cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md disabled:bg-gray-400 disabled:dark:bg-gray-600 disabled:cursor-not-allowed disabled:shadow-none"
                     onClick={() => handleShowUpcoming(match.home_team)}
                   >
                     Show {match.home_team} games →
                   </button>
                   <button
                     type="button"
-                    className="cta-button"
+                    className="flex-1 min-w-[200px] bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 border-0 rounded-md px-3.5 py-2.5 text-sm font-semibold cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md disabled:bg-gray-400 disabled:dark:bg-gray-600 disabled:cursor-not-allowed disabled:shadow-none"
                     onClick={() => handleShowUpcoming(match.away_team)}
                   >
                     Show {match.away_team} games →
@@ -96,89 +96,9 @@ const LiveScoresWidget = () => {
   };
 
   return (
-    <div id="live-scores-root">
-      <style>{`
-        #live-scores-root {
-          font-family: system-ui, -apple-system, sans-serif;
-          padding: 20px;
-        }
-        .scores-container {
-          max-width: 600px;
-          margin: 0 auto;
-        }
-        .league-section {
-          margin-bottom: 30px;
-        }
-        .league-title {
-          font-size: 18px;
-          font-weight: bold;
-          margin-bottom: 12px;
-          padding-bottom: 8px;
-          border-bottom: 2px solid #333;
-        }
-        .match {
-          background: #f5f5f5;
-          border-radius: 8px;
-          padding: 16px;
-          margin-bottom: 12px;
-        }
-        .team-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin: 4px 0;
-        }
-        .team-name {
-          font-weight: 500;
-        }
-        .team-score {
-          font-weight: bold;
-          font-size: 20px;
-          min-width: 30px;
-          text-align: right;
-        }
-        .possession {
-          color: #059669;
-          margin-right: 8px;
-        }
-        .match-status {
-          text-align: center;
-          color: #666;
-          font-size: 14px;
-          margin-top: 8px;
-          padding-top: 8px;
-          border-top: 1px solid #ddd;
-        }
-        .actions-row {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          margin-top: 12px;
-        }
-        .cta-button {
-          flex: 1 1 200px;
-          background: #111827;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          padding: 10px 14px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: transform 150ms ease, box-shadow 150ms ease;
-        }
-        .cta-button:hover:not(:disabled) {
-          transform: translateY(-1px);
-          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-        }
-        .cta-button:disabled {
-          background: #9ca3af;
-          cursor: not-allowed;
-          box-shadow: none;
-        }
-      `}</style>
-      <div className="scores-container">
-        <h2>🏟️ Live Football Scores</h2>
+    <div className="font-sans p-5 bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen">
+      <div className="max-w-2xl mx-auto">
+        <h2 className="text-2xl font-bold mb-4">🏟️ Live Football Scores</h2>
         <div id="scores-content">
           {renderScores()}
         </div>

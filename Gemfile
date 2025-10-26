@@ -57,3 +57,5 @@ group :development, :test do
   # Load environment variables from .env file
   gem "dotenv-rails"
 end
+
+gem "tailwindcss-rails", "~> 4.3"

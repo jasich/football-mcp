@@ -1,0 +1,4 @@
+@import "tailwindcss";
+
+/* Configure Tailwind to scan React components */
+@source "../../javascript/components/**/*.jsx";

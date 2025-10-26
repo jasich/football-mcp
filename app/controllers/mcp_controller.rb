@@ -56,8 +56,12 @@ class McpController < ApplicationController
       name: "football-mcp-server",
       version: "1.0.0",
       instructions: "A Rails-based MCP server for American football data",
-      tools: [ GetLiveScoresTool, GetTeamInfoTool ],
-      resources: [ LiveScoresWidgetResource.to_resource, TeamInfoWidgetResource.to_resource ]
+      tools: [ GetLiveScoresTool, GetTeamInfoTool, GetUpcomingGamesTool ],
+      resources: [
+        LiveScoresWidgetResource.to_resource,
+        TeamInfoWidgetResource.to_resource,
+        UpcomingGamesWidgetResource.to_resource
+      ]
     )
 
     # Handle resources/read requests
@@ -78,6 +82,13 @@ class McpController < ApplicationController
           mimeType: "text/html+skybridge",
           text: TeamInfoWidgetResource.read,
           _meta: TeamInfoWidgetResource.meta
+        } ]
+      when UpcomingGamesWidgetResource::URI
+        [ {
+          uri: uri,
+          mimeType: "text/html+skybridge",
+          text: UpcomingGamesWidgetResource.read,
+          _meta: UpcomingGamesWidgetResource.meta
         } ]
       else
         raise MCP::Server::RequestHandlerError.new(

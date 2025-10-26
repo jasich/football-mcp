@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-class LiveScoresWidgetResource
-  VERSION = "v5"
-  URI = "ui://widget/live-scores.html?#{VERSION}"
+class UpcomingGamesWidgetResource
+  VERSION = "v1"
+  URI = "ui://widget/upcoming-games.html?#{VERSION}"
 
   class << self
     def to_resource
       MCP::Resource.new(
         uri: URI,
-        name: "Live Scores Widget",
-        description: "HTML template for displaying live football scores",
+        name: "Upcoming Games Widget",
+        description: "Interactive schedule widget with ticket links",
         mime_type: "text/html+skybridge"
       )
     end
@@ -19,8 +19,8 @@ class LiveScoresWidgetResource
         template: "mcp_widgets/widget",
         layout: false,
         locals: {
-          widget_title: "Live Football Scores",
-          component_name: "LiveScoresWidget"
+          widget_title: "Upcoming Games",
+          component_name: "UpcomingGamesWidget"
         }
       )
     end

@@ -3,6 +3,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import LiveScoresWidget from './components/LiveScoresWidget';
 import TeamInfoWidget from './components/TeamInfoWidget';
+import UpcomingGamesWidget from './components/UpcomingGamesWidget';
 // Import other widgets here as you create them
 // import TeamStatsWidget from './components/TeamStatsWidget';
 
@@ -10,6 +11,7 @@ import TeamInfoWidget from './components/TeamInfoWidget';
 const COMPONENT_REGISTRY = {
   'LiveScoresWidget': LiveScoresWidget,
   'TeamInfoWidget': TeamInfoWidget,
+  'UpcomingGamesWidget': UpcomingGamesWidget,
   // 'TeamStatsWidget': TeamStatsWidget,
 };
 

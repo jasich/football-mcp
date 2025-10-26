@@ -5,6 +5,12 @@ const LiveScoresWidget = () => {
   // Use the reactive hook instead of polling
   const toolOutput = useToolOutput();
 
+  const handleShowUpcoming = async (teamName) => {
+    await window.openai?.sendFollowUpMessage({
+      prompt: `Show upcoming games for the ${teamName}.`
+    });
+  };
+
   const renderScores = () => {
     if (!toolOutput) {
       return <p>Waiting for data...</p>;
@@ -64,6 +70,22 @@ const LiveScoresWidget = () => {
                 </div>
                 <div className="match-status">
                   {match.quarter} - {match.time_remaining}
+                </div>
+                <div className="actions-row">
+                  <button
+                    type="button"
+                    className="cta-button"
+                    onClick={() => handleShowUpcoming(match.home_team)}
+                  >
+                    Show {match.home_team} games →
+                  </button>
+                  <button
+                    type="button"
+                    className="cta-button"
+                    onClick={() => handleShowUpcoming(match.away_team)}
+                  >
+                    Show {match.away_team} games →
+                  </button>
                 </div>
               </div>
             ))}
@@ -126,6 +148,33 @@ const LiveScoresWidget = () => {
           margin-top: 8px;
           padding-top: 8px;
           border-top: 1px solid #ddd;
+        }
+        .actions-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-top: 12px;
+        }
+        .cta-button {
+          flex: 1 1 200px;
+          background: #111827;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          padding: 10px 14px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: transform 150ms ease, box-shadow 150ms ease;
+        }
+        .cta-button:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+        .cta-button:disabled {
+          background: #9ca3af;
+          cursor: not-allowed;
+          box-shadow: none;
         }
       `}</style>
       <div className="scores-container">

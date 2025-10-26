@@ -11,6 +11,8 @@ An example Rails 8 application that demonstrates how to build a [Model Context P
 - **Session management** - Proper handling of multiple concurrent clients
 - **React 19 widgets** - Interactive UIs that render inside ChatGPT
 - **Component registry pattern** - Reusable widget architecture for rapid development
+- **Upcoming schedule widget** - Interactive ticket-purchase CTA powered by the OpenAI Apps SDK
+- **In-widget follow-ups** - Live scores widget can trigger follow-up prompts (via `sendFollowUpMessage`) to fetch deeper data without typing
 
 ## Screenshots
 

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class McpController < ApplicationController
+class McpController < McpBaseController
   # Store transport instance in class variable to maintain sessions across requests
   #
   # WARNING: This singleton pattern with in-memory session storage is NOT suitable for production!

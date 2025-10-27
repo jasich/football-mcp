@@ -1,0 +1,4 @@
+web: env RUBY_DEBUG_OPEN=true bin/rails server
+js: npm run watch
+tunnel: cloudflared tunnel run football-mcp
+css: bin/rails tailwindcss:watch

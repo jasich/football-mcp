@@ -1,0 +1,48 @@
+# See https://help.github.com/articles/ignoring-files for more about ignoring files.
+
+# Ignore bundler config.
+/.bundle
+
+# Ignore local environment overrides (keep .env and .env.example committed)
+/.env*.local
+
+# Ignore all logfiles and tempfiles.
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+
+# Ignore pidfiles, but keep the directory.
+/tmp/pids/*
+!/tmp/pids/.keep
+
+# Ignore storage (uploaded files in development and any SQLite databases).
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+!/tmp/storage/.keep
+
+# Ignore master key for decrypting credentials and more.
+/config/master.key
+
+# Ignore database files
+*.sqlite3
+*.sqlite3-*
+
+# Ignore node_modules
+/node_modules
+
+# Ignore yarn files
+/yarn-error.log
+yarn-debug.log*
+.yarn-integrity
+
+# Ignore coverage files
+/coverage/
+
+# Ignore built JavaScript assets (built by jsbundling-rails)
+/app/assets/builds/*
+!/app/assets/builds/.keep
+
+# Ignore public assets directory (not used with Propshaft)
+/public/assets

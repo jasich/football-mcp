@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= local_assigns[:widget_title] || "Widget" %></title>
+  <%= stylesheet_link_tag "tailwind" %>
+  <%= javascript_include_tag "application", type: "module" %>
+</head>
+<body>
+  <div id="react-root" data-component="<%= local_assigns[:component_name] %>"></div>
+</body>
+</html>

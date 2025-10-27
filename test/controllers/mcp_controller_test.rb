@@ -1,0 +1,117 @@
+# frozen_string_literal: true
+
+require "test_helper"
+
+class McpControllerTest < ActionDispatch::IntegrationTest
+  test "should list resources without LiveScoresBoardResource" do
+    post "/mcp",
+      params: {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "resources/list"
+      }.to_json,
+      headers: { "Content-Type" => "application/json" }
+
+    assert_response :success
+    json = JSON.parse(response.body)
+
+    assert_equal "2.0", json["jsonrpc"]
+    assert_equal 1, json["id"]
+
+    resources = json.dig("result", "resources")
+    assert_not_nil resources, "Result should contain resources array"
+    assert_equal 3, resources.length, "Should have three widget resources"
+
+    # Should have the live scores widget resource
+    live_scores_widget = resources.find { |r| r["uri"].start_with?("ui://widget/live-scores.html") }
+    assert_not_nil live_scores_widget, "Live Scores Widget resource should be present"
+    assert_equal "Live Scores Widget", live_scores_widget["name"]
+
+    # Should have the team info widget resource
+    team_info_widget = resources.find { |r| r["uri"].start_with?("ui://widget/team-info.html") }
+    assert_not_nil team_info_widget, "Team Info Widget resource should be present"
+    assert_equal "Team Info Widget", team_info_widget["name"]
+
+    # Should have the upcoming games widget resource
+    upcoming_widget = resources.find { |r| r["uri"].start_with?("ui://widget/upcoming-games.html") }
+    assert_not_nil upcoming_widget, "Upcoming Games Widget resource should be present"
+    assert_equal "Upcoming Games Widget", upcoming_widget["name"]
+  end
+
+  test "should read widget resource" do
+    post "/mcp",
+      params: {
+        jsonrpc: "2.0",
+        id: 2,
+        method: "resources/read",
+        params: {
+          uri: LiveScoresWidgetResource::URI
+        }
+      }.to_json,
+      headers: { "Content-Type" => "application/json" }
+
+    assert_response :success
+    json = JSON.parse(response.body)
+
+    assert_equal "2.0", json["jsonrpc"]
+    contents = json.dig("result", "contents")
+    assert_not_nil contents, "Result should contain contents array"
+    assert_equal 1, contents.length
+
+    content = contents[0]
+    assert_equal LiveScoresWidgetResource::URI, content["uri"]
+    assert_equal "text/html+skybridge", content["mimeType"]
+    assert_includes content["text"], "<div id=\"react-root\"", "Should contain React mount point"
+    assert_includes content["text"], "data-component=\"LiveScoresWidget\"", "Should specify component name"
+    assert_includes content["text"], "application", "Should include application.js script"
+  end
+
+  test "should return error for removed board resource" do
+    post "/mcp",
+      params: {
+        jsonrpc: "2.0",
+        id: 3,
+        method: "resources/read",
+        params: {
+          uri: "live-scores://board"
+        }
+      }.to_json,
+      headers: { "Content-Type" => "application/json" }
+
+    assert_response :success
+    json = JSON.parse(response.body)
+
+    # Should return a JSON-RPC error for removed resource
+    assert json["error"], "Should have error for removed resource"
+    assert_equal -32603, json["error"]["code"], "Should return internal error code"
+    assert json["error"]["message"], "Should have error message"
+    # Verify there's no result when there's an error
+    assert_nil json["result"], "Should not have result when there's an error"
+  end
+
+  test "should read upcoming games widget resource" do
+    post "/mcp",
+      params: {
+        jsonrpc: "2.0",
+        id: 4,
+        method: "resources/read",
+        params: {
+          uri: UpcomingGamesWidgetResource::URI
+        }
+      }.to_json,
+      headers: { "Content-Type" => "application/json" }
+
+    assert_response :success
+    json = JSON.parse(response.body)
+
+    assert_equal "2.0", json["jsonrpc"]
+    contents = json.dig("result", "contents")
+    assert_not_nil contents, "Result should contain contents array"
+    assert_equal 1, contents.length
+
+    content = contents[0]
+    assert_equal UpcomingGamesWidgetResource::URI, content["uri"]
+    assert_equal "text/html+skybridge", content["mimeType"]
+    assert_includes content["text"], "data-component=\"UpcomingGamesWidget\"", "Should specify upcoming games component"
+  end
+end

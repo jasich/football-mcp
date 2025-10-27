@@ -14,17 +14,26 @@ An example Rails 8 application that demonstrates how to build a [Model Context P
 - **Upcoming schedule widget** - Interactive ticket-purchase CTA powered by the OpenAI Apps SDK
 - **In-widget follow-ups** - Live scores widget can trigger follow-up prompts (via `sendFollowUpMessage`) to fetch deeper data without typing
 
+## ⚠️ Production Warning
+
+**This application is NOT production-ready.** It uses in-memory session storage which:
+- Does not work with multiple servers or processes
+- Loses all sessions on restart
+- Is suitable only for development, demos, and single-server deployments
+
+For production use, implement Redis-backed sessions or use stateless mode.
+
 ## Screenshots
 
 ### Live Scores Widget
 
-![Live Scores Widget](./docs/images/live-scores.png)
+<img src="./docs/images/live-scores.png" alt="Live Scores Widget" width="600">
 
 The Live Scores Widget displays real-time football game scores in an interactive React component rendered inside ChatGPT.
 
 ### Team Info Resource
 
-![Team Info Resource](./docs/images/team-info.png)
+<img src="./docs/images/team-info.png" alt="Team Info Resource" width="600">
 
 The Team Info resource provides structured NFL team data including divisions, colors, and stadium information.
 
@@ -115,44 +124,6 @@ ChatGPT requires an HTTPS endpoint to connect to your local development server. 
    ```
 
 4. **Restart `bin/dev`** for the BASE_URL change to take effect
-
-## Architecture
-
-### MCP Server Pattern
-
-The application uses **Streamable HTTP transport** which supports multiple HTTP methods at the `/mcp` endpoint:
-
-**HTTP Methods:**
-- **POST** - JSON-RPC requests (initialize, tools/list, tools/call, etc.)
-- **GET** - SSE stream connections (requires Mcp-Session-Id header)
-- **DELETE** - Session cleanup (requires Mcp-Session-Id header)
-
-**Request Flow:**
-1. **Routes** (`config/routes.rb`): All three HTTP methods route to `McpController#handle`
-2. **Controller** (`app/controllers/mcp_controller.rb`):
-   - Uses singleton pattern to maintain a single `StreamableHTTPTransport` instance across requests
-   - This preserves session state for SSE connections
-   - Delegates all request handling to `transport.handle_request(request)`
-   - The transport automatically handles POST/GET/DELETE based on request method
-3. **Tools** (`app/mcp_tools/`): Each tool is a class that inherits from `MCP::Tool`
-
-**Session Management:**
-- Sessions are created via the `initialize` JSON-RPC method
-- Server returns a `Mcp-Session-Id` header containing a UUID
-- Clients use this session ID to establish SSE streams and make subsequent requests
-- When an SSE stream is active, tool responses are sent via SSE and HTTP returns `{"accepted":true}`
-- Without an active stream, responses return normally as JSON
-
-### Technology Stack
-
-- Rails 8.0.2+ (full Rails with API-only origins, now includes view support for widgets)
-- Ruby MCP SDK gem with StreamableHTTPTransport
-- SQLite 3 with Solid adapters (solid_cache, solid_queue, solid_cable)
-- Puma web server
-- React 19 for interactive widgets
-- ESBuild for JavaScript bundling (via jsbundling-rails)
-- Propshaft for asset serving
-- dotenv-rails for environment configuration
 
 ## Adding Tools
 
@@ -257,59 +228,6 @@ end
 
 Without versioning, clients will continue using stale cached versions indefinitely, even after server restarts.
 
-### Current Resources
-
-- **LiveScoresWidgetResource** (`app/mcp_resources/live_scores_widget_resource.rb`): HTML widget for displaying live football scores in ChatGPT. Demonstrates OpenAI Apps SDK widget integration with `text/html+skybridge` mime type.
-- **TeamInfoResource** (`app/mcp_resources/team_info_resource.rb`): JSON resource providing NFL team information (names, divisions, colors, etc.).
-
-## React Widget Architecture
-
-The application uses React for building interactive UI widgets that render inside ChatGPT's iframe.
-
-### Structure
-
-- `app/javascript/components/` - React components
-- `app/javascript/application.js` - Component registry and mounting logic
-- `app/views/mcp_widgets/widget.html.erb` - **Shared widget template** (reused by all widgets)
-- `app/assets/builds/` - Built JavaScript bundles (served by Propshaft)
-- `.env` - BASE_URL configuration (sets `config.asset_host` for full URLs)
-
-### Component Registry Pattern
-
-All widgets share a single HTML template. The `application.js` file maintains a registry of React components and dynamically mounts the correct component based on the `data-component` attribute:
-
-```javascript
-const COMPONENT_REGISTRY = {
-  'LiveScoresWidget': LiveScoresWidget,
-  'TeamStatsWidget': TeamStatsWidget,  // Add new widgets here
-};
-```
-
-This eliminates the need to create separate ERB templates for each widget.
-
-### Asset Pipeline
-
-- **jsbundling-rails** - Manages JavaScript bundling with esbuild
-- **Propshaft** - Modern asset pipeline that serves files from `app/assets/builds/`
-- esbuild builds to `app/assets/builds/` (not `public/`)
-- Propshaft adds digest fingerprinting in production (e.g., `application-abc123.js`)
-- Views use `javascript_include_tag "application"` which generates full URLs via `config.asset_host`
-- CORS headers applied automatically by rack-cors middleware
-
-### Key Patterns
-
-- Uses `useOpenAiGlobal()` hook with `useSyncExternalStore` to reactively subscribe to `window.openai` changes
-- Listens for `openai:set_globals` events instead of polling
-- Reads tool output from `window.openai.toolOutput`
-
-### Development Workflow
-
-1. Edit React components in `app/javascript/components/`
-2. Add component to registry in `app/javascript/application.js` (one line)
-3. Run `npm run watch` to rebuild on changes (outputs to `app/assets/builds/`)
-4. Increment resource `VERSION` constant to bust ChatGPT's cache
-5. Test in ChatGPT (resource URI includes version, e.g., `ui://widget/live-scores.html?v19`)
-
 ## Adding New React Widgets
 
 Adding a new widget requires only **6 steps**:
@@ -328,36 +246,8 @@ Create a component file in `app/javascript/components/`:
 
 ```jsx
 // app/javascript/components/MyWidget.jsx
-import React, { useSyncExternalStore } from 'react';
-
-// Custom hook to subscribe to window.openai global changes
-const SET_GLOBALS_EVENT_TYPE = 'openai:set_globals';
-
-function useOpenAiGlobal(key) {
-  return useSyncExternalStore(
-    (onChange) => {
-      const handleSetGlobal = (event) => {
-        const value = event.detail?.globals?.[key];
-        if (value === undefined) return;
-        onChange();
-      };
-
-      window.addEventListener(SET_GLOBALS_EVENT_TYPE, handleSetGlobal, {
-        passive: true,
-      });
-
-      return () => {
-        window.removeEventListener(SET_GLOBALS_EVENT_TYPE, handleSetGlobal);
-      };
-    },
-    () => window.openai?.[key]
-  );
-}
-
-// Convenience hook for tool output
-function useToolOutput() {
-  return useOpenAiGlobal('toolOutput');
-}
+import React from 'react';
+import { useToolOutput } from '../utils/openai-hooks';
 
 const MyWidget = () => {
   const toolOutput = useToolOutput();
@@ -367,9 +257,13 @@ const MyWidget = () => {
   }
 
   return (
-    <div>
-      <h2>My Widget</h2>
-      <pre>{JSON.stringify(toolOutput, null, 2)}</pre>
+    <div className="font-sans p-5 bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen">
+      <div className="max-w-2xl mx-auto">
+        <h2 className="text-2xl font-bold mb-4">My Widget</h2>
+        <pre className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-auto">
+          {JSON.stringify(toolOutput, null, 2)}
+        </pre>
+      </div>
     </div>
   );
 };

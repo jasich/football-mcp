@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class LiveScoresWidgetResource
-  VERSION = "v8"
+  VERSION = "v1"
   URI = "ui://widget/live-scores.html?#{VERSION}"
 
   class << self

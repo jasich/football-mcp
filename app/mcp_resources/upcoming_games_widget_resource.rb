@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class UpcomingGamesWidgetResource
-  VERSION = "v4"
+  VERSION = "v1"
   URI = "ui://widget/upcoming-games.html?#{VERSION}"
 
   class << self

@@ -1,10 +1,7 @@
 # frozen_string_literal: true
 
 class TeamInfoWidgetResource
-  # Add version for cache busting during development
-  # v1: Initial version with team info widget
-  # v2: Converted to Tailwind CSS with dark mode support
-  VERSION = "v2"
+  VERSION = "v1"
   URI = "ui://widget/team-info.html?#{VERSION}"
 
   class << self
